@@ -1,8 +1,10 @@
 reset;
 
-model sp1.mod; #Ojo aca se definen todos los parametros
-data data0.dat;
+model sp1.mod; #Definicion del subproblema
+data data0.dat; #Datos para clientes en distintas comunas.
 
+
+#Define un parametro Times_ij, indica el tiempo de viaje entre i e j. 
 for {i in nodes}{
 	for {j in nodes}{ 
 		let times[i,j] := t_cost[place[i],place[j]]; 

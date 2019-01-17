@@ -32,13 +32,13 @@ var s{L} integer >=0;	#Indica el numero (nombre) del cliente que esta en la posi
 var w{L} >=0;			#instante en que se inicia la atencion en el nodo L
 var d{L} >=0;			#atraso con que se llega al nodo L con respecto al fin de la jornada (debia ser TW)
 var a{nodes} binary;	#Si e cliente 1 fue atendido en esta ruta.
-var t{1..4} binary;			#tiempo de viaje entre nodos..
+var t{1..4} >=0;		#Tiempo de viaje entre nodos (Lcap-1)..
 
 #variables dual del primal.
 #param pi{I1 union I2};
 
 #SP1.
-#minimize SubProb: 5;
+#minimize SubProb: 5; #Busco una solucion factible.
 minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l];
 #minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*w[5] - sum{i in I1 union I2} pi[i]*a[i] ;
 
@@ -50,7 +50,7 @@ subject to allDifferents{i in L, j in L}: i!=j ==> s[i] != s[j];
 
 subject to timing1: w[1] = 0;
 
-#Restriccion de tiempo
+#Restriccion de tiempo.
 subject to timing2 {l in 2..Lcap}: exists{i in nodes, j in nodes diff {i} } w[l] = w[l-1] + times[i,j] + service[i] and s[l-1]=i and s[l]=j; 
 
 #res 18:
@@ -73,5 +73,5 @@ subject to aCol1: sum{i in nodes} a[i] = 5;
 subject to aCol2{l in L}: exists{i in nodes}  a[i] = 1 and s[l] = i;
 
 #res28 y 29:
-subject to res28{l in 3..Lcap}: s[l] > C+1 ==> s[l-1] = s[l]-1;
-subject to res29{l in 3..Lcap}: s[l] <= C+1 ==> s[l-1] < C+1;
+subject to res28{l in 3..Lcap}: s[l] >= C+1 ==> s[l-1] = s[l]-1;
+subject to res29{l in 3..Lcap}: s[l] <= C+1 ==> s[l-1] <= C+1;
