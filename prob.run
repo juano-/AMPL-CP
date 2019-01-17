@@ -1,0 +1,67 @@
+reset;
+
+model sp1.mod;
+model mp.mod;
+data data0.dat;
+
+#Dar una solucion inicial, R = 1, c=0 (atender a cero clientes, pagar la multa).
+let R := {1};
+for {r in R}{ 
+	let c[r] := 0; 
+}
+for {r in R}{
+for {i in 0..C}{
+	let aa[i,r] := 0;
+	}
+}
+
+#Define un parametro Times_ij, indica el tiempo de viaje entre i e j. 
+for {i in nodes}{
+	for {j in nodes}{ 
+		let times[i,j] := t_cost[place[i],place[j]]; 
+	}
+}
+
+
+problem MP: x, vi, MasterProb, res0;
+option solver cplex;
+option relax_integrality 1;
+option presolve 0;
+
+problem SP: s, w, d, a, t, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
+option solver ilogcp;
+option ilogcp_options 'optimizer=cplex';
+option relax_integrality 0;
+
+param CurrentSol;
+param iter;
+let iter:=1;
+let CurrentSol := 2000;
+
+
+repeat {
+	solve MP;
+	display iter;
+	let iter := iter+1;
+ 	
+ 	let {i in I1 union I2} pi[i] := res0[i].dual;
+	solve SP;
+	display _solve_elapsed_time;
+
+	if SubProb < -0.001 then {
+     let R := R union {iter};
+     let c[iter] := sum {l in 1..4} t[l];
+     let CurrentSol := MasterProb;
+     let {i in I1 union I2} aa[i,iter] := a[i];
+	}
+   else break;
+}
+
+#Branch and Bound Sol.
+
+problem MP_int: x, vi, MasterProb, res0;
+option solver cplex;
+option relax_integrality 0;
+option presolve 0;
+
+#solve MP_int;

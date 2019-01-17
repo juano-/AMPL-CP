@@ -35,15 +35,15 @@ var a{nodes} binary;	#Si e cliente 1 fue atendido en esta ruta.
 var t{1..4} >=0;		#Tiempo de viaje entre nodos (Lcap-1)..
 
 #variables dual del primal.
-#param pi{I1 union I2};
+param pi{I1 union I2};
 
-#SP1.
-#minimize SubProb: 5; #Busco una solucion factible.
-#minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l];
-minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l] -  100; #sum{i in I1 union I2} pi[i]*a[i] ;
+#SP.
+minimize SubProb: sum{l in 1..4} t[l] - sum{i in I1 union I2} pi[i]*a[i];
+#minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l] - sum{i in I1 union I2} pi[i]*a[i] ;
 
 #aux: Define el tiempo de la ruta -> tiempos de viaje fijo + Tservicio.
-subject to aux{l in 1..4}: forall{i in nodes, j in nodes} (s[l] = i and s[l+1]=j ==> t[l] = times[i,j]);
+#subject to aux{l in 1..4}: exists{i in nodes, j in nodes} t[l] = times[i,j] and s[l] = i and s[l+1]=j;
+subject to aux{i in nodes, j in nodes, l in 1..4}:  s[l] = i and s[l+1]=j ==> t[l] = times[i,j];
 
 #res19
 subject to allDifferents{i in L, j in L}: i!=j ==> s[i] != s[j]; 
@@ -51,7 +51,8 @@ subject to allDifferents{i in L, j in L}: i!=j ==> s[i] != s[j];
 subject to timing1: w[1] = 0;
 
 #Restriccion de tiempo.
-subject to timing2 {l in 2..Lcap}: forall{i in nodes, j in nodes} ( s[l-1]=i and s[l]=j ==> w[l] = w[l-1] + times[i,j] + service[i]); 
+subject to timing2 {i in nodes, l in 2..Lcap}: s[l-1]=i ==> w[l] = w[l-1] + t[l-1] + service[i]; 
+
 
 #res 18:
 subject to timing3{l in L}: d[l] = max(w[l]-8,0);
@@ -70,10 +71,7 @@ subject to res23{l in 3..Lcap-1, i in I3}: s[l] = i ==> s[l+1] = i+1;
 
 #res 24 y 25:
 subject to aCol1: sum{i in nodes} a[i] = 5;
-#subject to aCol2{l in L}: exists{i in nodes}  a[i] = 1 and s[l] = i;
 subject to aCol2{i in nodes, l in L}: s[l] = i ==> a[i] = 1;
-
-
 
 #res28 y 29:
 subject to res28{l in 3..Lcap}: s[l] >= C+1 ==> s[l-1] = s[l]-1;
