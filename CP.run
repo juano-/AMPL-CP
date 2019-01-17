@@ -1,0 +1,16 @@
+reset;
+
+model sp1.mod; #Ojo aca se definen todos los parametros
+data data0.dat;
+
+for {i in nodes}{
+	for {j in nodes}{ 
+		let times[i,j] := t_cost[place[i],place[j]]; 
+	}
+}
+
+problem SP: s, w, d, a, t, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
+option solver ilogcp;
+option ilogcp_options 'optimizer=cplex';
+option relax_integrality 0;
+

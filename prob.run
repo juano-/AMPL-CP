@@ -1,0 +1,72 @@
+reset;
+
+model sp1.mod; #Ojo aca se definen todos los parametros
+model mp.mod;
+data graph1/apr10-sd06.dat;
+
+#Dar una solucion inicial, R = 1, c=0 (atender a cero clientes, pagar la multa).
+let R := {1};
+for {r in R}{ 
+	let c[r] := 0; 
+}
+for {r in R}{
+	for {i in 0..C}{
+		let aa[i,r] := 0;
+	}
+}
+
+problem MP: x, vi, MasterProb, res0;
+option solver cplex;
+option relax_integrality 1;
+option presolve 0;
+
+problem SP: s, w, d, a, routetime, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
+option solver ilogcp;
+option ilogcp_options 'optimizer=cplex optimalitytolerance=0.001 searchtype=multipoint';
+option relax_integrality 0;
+
+#param CurrentSol;
+param iter;
+let iter:=1;
+#let CurrentSol := 2000;
+
+#Algortimo de CG-CP
+repeat {
+	solve MP; #Resolver el problema maestro.
+	display iter; #mostrar la itercion actual
+	display MasterProb; #mostrar solucion actual del problema
+	let iter := iter+1; #Incremeto contador de iteracion
+
+	let {i in I1 union I2} pi[i] := res0[i].dual; #Guardar las variables duales
+	#display pi;
+	
+	solve SP;
+	
+	display s;
+	display w;
+	
+	display _solve_elapsed_time;
+
+	#Criterio de parada
+	if SubProb < -0.001 then {
+    	let R := R union {iter};
+      	let c[iter] := 0.75*sum{l in L} d[l] + 0.25*w[5]; #calcular costo ruta agregada
+      	#let CurrentSol := MasterProb;
+            
+      	let {i in I1 union I2} aa[i,iter] := a[i]; #agregar columna al  MP
+	}
+   else break;
+	}
+
+
+#Resuelve el problema primal, Var x. integralizada.
+problem MP_int: x, vi, MasterProb, res0;
+option solver cplex;
+option relax_integrality 0;
+option presolve 0;
+solve MP_int;
+
+display x;
+display c;
+display aa;
+
