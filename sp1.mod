@@ -38,12 +38,12 @@ var t{1..4} >=0;		#Tiempo de viaje entre nodos (Lcap-1)..
 #param pi{I1 union I2};
 
 #SP1.
-minimize SubProb: 5; #Busco una solucion factible.
+#minimize SubProb: 5; #Busco una solucion factible.
 #minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l];
-#minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*w[5] - sum{i in I1 union I2} pi[i]*a[i] ;
+minimize SubProb: 0.75*sum{l in L} d[l] + 0.25*sum{l in 1..4} t[l] -  100; #sum{i in I1 union I2} pi[i]*a[i] ;
 
 #aux: Define el tiempo de la ruta -> tiempos de viaje fijo + Tservicio.
-subject to aux{l in 1..4}: exists{i in nodes, j in nodes} s[l] = i and s[l+1]=j and t[l] = times[i,j];
+subject to aux{l in 1..4}: forall{i in nodes, j in nodes} (s[l] = i and s[l+1]=j ==> t[l] = times[i,j]);
 
 #res19
 subject to allDifferents{i in L, j in L}: i!=j ==> s[i] != s[j]; 
@@ -51,7 +51,7 @@ subject to allDifferents{i in L, j in L}: i!=j ==> s[i] != s[j];
 subject to timing1: w[1] = 0;
 
 #Restriccion de tiempo.
-subject to timing2 {l in 2..Lcap}: exists{i in nodes, j in nodes} w[l] = w[l-1] + times[i,j] + service[i] and s[l-1]=i and s[l]=j; 
+subject to timing2 {l in 2..Lcap}: forall{i in nodes, j in nodes} ( s[l-1]=i and s[l]=j ==> w[l] = w[l-1] + times[i,j] + service[i]); 
 
 #res 18:
 subject to timing3{l in L}: d[l] = max(w[l]-8,0);
