@@ -13,6 +13,5 @@ for {i in nodes}{
 
 problem SP: s, w, d, a, t, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
 option solver ilogcp;
-option ilogcp_options 'optimizer=cplex';
-option relax_integrality 0;
+option ilogcp_options 'optimizer=auto';
 
