@@ -4,17 +4,8 @@ model sp1.mod;
 model mp.mod;
 data data0.dat;
 
-#Dar una solucion inicial, R = 1, c=0 (atender a cero clientes, pagar la multa).
-#let R := {1};
-#for {r in R}{ 
-#	let c[r] := 0; 
-#}
-#for {r in R}{
-#for {i in 1..C}{
-#	let aa[i,r] := 0;
-#	}
-#}
-
+#Dar una solucion inicial, R = C, c=service[r] 
+#Atender a C clientes usando C rutas.
 
 let R:= 1..C;
 for {r in R}{ 
@@ -29,9 +20,6 @@ for {r in R}{
 		}
 	}
 }
-
-
-
 
 #Define un parametro Times_ij, indica el tiempo de viaje entre i e j. 
 for {i in nodes}{
@@ -54,7 +42,7 @@ let col:=C;
 repeat {
 	#relajo las variables del problema maestro.
 	let {i in R} x[i].relax := 1;
-    	let {i in I2} vi[i].relax := 1;
+   	let {i in I2} vi[i].relax := 1;
 	
 	solve MP;
 	display res1.dual;
@@ -66,17 +54,17 @@ repeat {
 	
 	#option relax_integrality 0;
 	solve SP;
-	display _solve_elapsed_time;
 
 	if SubProb < -0.001 then {
-     		let R := R union {col};
-     		let c[col] := sum{l in L} d[l] + sum {l in 1..4} t[l];
-     		let {i in I2} aa[i,col] := a[i];
-     
+    	let R := R union {col};
+     	let c[col] := sum{l in L} d[l] + sum {l in 1..4} t[l];
+     	let {i in I2} aa[i,col] := a[i];
 	}
    else break;
 }
 
 let {i in R} x[i].relax := 0;
 let {i in I2} vi[i].relax := 0;
+
 solve MP;
+display _total_solve_time;
