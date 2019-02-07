@@ -5,15 +5,33 @@ model mp.mod;
 data data0.dat;
 
 #Dar una solucion inicial, R = 1, c=0 (atender a cero clientes, pagar la multa).
-let R := {1};
+#let R := {1};
+#for {r in R}{ 
+#	let c[r] := 0; 
+#}
+#for {r in R}{
+#for {i in 1..C}{
+#	let aa[i,r] := 0;
+#	}
+#}
+
+
+let R:= 1..C;
 for {r in R}{ 
-	let c[r] := 0; 
+	let c[r] := service[r]; 
 }
 for {r in R}{
-for {i in 0..C}{
-	let aa[i,r] := 0;
+	for {i in 1..C}{
+		if i=r then{
+			let aa[i,r] := 1;
+		} else {
+			let aa[i,r] := 0;
+		}
 	}
 }
+
+
+
 
 #Define un parametro Times_ij, indica el tiempo de viaje entre i e j. 
 for {i in nodes}{
@@ -22,43 +40,43 @@ for {i in nodes}{
 	}
 }
 
-problem MP: x, vi, MasterProb, res0;
+problem MP: x, vi, MasterProb, res0, res1;
 option solver cplex;
 option presolve 0;
 
 problem SP: s, w, d, a, t, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
 option solver ilogcp;
 option ilogcp_options 'branchlimit=35000';
-#option ilogcp_options 'logverbosity=verbose optimizer=auto mipdisplay=3';
 
 param col;
-let col:=1;
+let col:=C;
 
 repeat {
 	#relajo las variables del problema maestro.
 	let {i in R} x[i].relax := 1;
-    let {i in I1 union I2} vi[i].relax := 1;
+    	let {i in I2} vi[i].relax := 1;
 	
 	solve MP;
-	display x;
+	display res1.dual;
 	let col := col+1;
 	display col;
  	
- 	let {i in I1 union I2} pi[i] := res0[i].dual;
+ 	let {i in I2} pi[i] := res0[i].dual;
+ 	let mu := res1.dual;
 	
 	#option relax_integrality 0;
 	solve SP;
 	display _solve_elapsed_time;
 
 	if SubProb < -0.001 then {
-     let R := R union {col};
-     let c[col] := sum{l in L} d[l] + sum {l in 1..4} t[l];
-     let {i in I1 union I2} aa[i,col] := a[i];
+     		let R := R union {col};
+     		let c[col] := sum{l in L} d[l] + sum {l in 1..4} t[l];
+     		let {i in I2} aa[i,col] := a[i];
      
 	}
    else break;
 }
 
 let {i in R} x[i].relax := 0;
-let {i in I1 union I2} vi[i].relax := 0;
+let {i in I2} vi[i].relax := 0;
 solve MP;
