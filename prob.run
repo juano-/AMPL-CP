@@ -2,7 +2,12 @@ reset;
 
 model sp1.mod;
 model mp.mod;
+
 data data0.dat;
+data data1.dat;
+data data2.dat;
+data data3.dat;
+
 
 #Dar una solucion inicial, R = C, c=service[r] 
 #Atender a C clientes usando C rutas.
@@ -28,17 +33,20 @@ for {i in nodes}{
 	}
 }
 
-problem MP: x, vi, MasterProb, res0, res1;
+problem MP: x, vi, fo1, fo2, MasterProb, res0, fo1res, fo2res, res1;
 option solver cplex;
 option presolve 0;
 
-problem SP: s, w, d, a, t, SubProb, aux, allDifferents, timing1, timing2, timing3, init, second, res22, aCol1, aCol2, res28, res29;
-option solver ilogcp;
-option ilogcp_options 'branchlimit=35000';
 
+problem SP: s, w, d, a, t, SubProb, aux, allDifferents, init, timing1, timing2, timing3, second, res22, aCol1, aCol2, res28, res29;
+option solver ilogcp;
+#option ilogcp_options 'branchlimit=35000';
+option ilogcp_options 'branchlimit=35000 optimizer=auto outlev=normal';
 param col;
 let col:=C;
 
+
+/*
 repeat {
 	#relajo las variables del problema maestro.
 	let {i in R} x[i].relax := 1;
@@ -68,3 +76,6 @@ let {i in I2} vi[i].relax := 0;
 
 solve MP;
 display _total_solve_time;
+
+
+*/

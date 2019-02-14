@@ -36,9 +36,8 @@ var t{1..Lcap-1} integer >=0;		#Tiempo de viaje entre nodos (Lcap-1)..
 param pi{I2};
 param mu;
 
-#SP
-minimize SubProb: sum{l in L} d[l] + sum{l in 1..4} t[l] - sum{i in I2} pi[i]*a[i] - mu;
-
+#SP.
+minimize SubProb: sum{l in L} d[l] + sum{l in 1..Lcap-1} t[l] - sum{i in I2} pi[i]*a[i] -mu;
 
 #aux: Define el tiempo de la ruta -> tiempos de viaje fijo + Tservicio.
 subject to aux{l in 1..4}: exists{i in nodes, j in nodes} t[l] = times[i,j] and s[l] = i and s[l+1]=j;
@@ -70,11 +69,9 @@ subject to res22{l in 3..Lcap}: s[l] <= C+Lcap-2;
 subject to res23{l in 3..Lcap-1, i in I3}: s[l] = i ==> s[l+1] = i+1;
 
 #res 24 y 25:
-subject to aCol1{l in L}: exists{i in nodes} s[l] = i and a[i] = 1;
-subject to aCol2: sum{i in nodes} a[i] = 5;
+subject to aCol1: sum{i in nodes} a[i] = 5;
+subject to aCol2{l in L}: exists{i in nodes} s[l] = i and a[i] = 1;
 
 #res28 y 29:
 subject to res28{l in 3..Lcap}: s[l] > C+1 ==> s[l-1] = s[l]-1;
 subject to res29{l in 3..Lcap}: s[l] <= C+1 ==> s[l-1] < C+1;
-
-
